@@ -35,10 +35,16 @@ type config struct {
 	Debuglog            bool   `env:"DEBUG_LOG" envDefault:"true"`
 	JaegerEndpoint      string `env:"JAEGER_ENDPOINT" envDefault:"http://localhost:14268/api/traces"`
 	MongoDbUri          string `env:"MONGO_DB_URI" envDefault:"mongodb://localhost:27017"`
-	MongoDbStoreVersion string `env:"MONGO_DB_STORE_VERSION" envDefault:"develop-store-version"`
+	MongoDbStoreVersion string `env:"MONGO_DB_PCRD_VERSION" envDefault:"develop-store-version"`
 	TargetAppId         string `env:"TARGET_APPID"`
 	Service             struct {
 		Application string `env:"SERVICE_APPLICATION_BASEURL"`
+	}
+	PCRD struct {
+		JPEndpoint string `env:"PCRD_JP_ENDPOINT" envDefault:"http://prd-priconne-redive.akamaized.net"`
+		JPSalt     string `env:"PCRD_JP_SALT" envDefault:""`
+		THEndpoint string `env:"PCRD_TH_ENDPOINT" envDefault:"https://pcc-game.i3play.com"`
+		THSalt     string `env:"PCRD_TH_SALT" envDefault:""`
 	}
 	KafkaServer            string `env:"KAFKA_SERVER" envDefault:"localhost:9092"`
 	KafkaTopicVersionEvent string `env:"KAFKA_TOPIC_VERSION_EVENT"`
@@ -155,10 +161,10 @@ func initRepositories(cfg config) (
 		zap.L().Fatal("Error ping mongo client: ", zap.Error(err))
 	}
 
-	appRepo := application_repository.NewRest("https://apis.store.takumipro.dev")
+	appRepo := application_repository.NewRest(cfg.Service.Application)
 	settingRepo := setting_repository.NewMongoDb(client.Database(cfg.MongoDbStoreVersion))
-	pcrdTHRepo := pcrd_th_repository.NewRest("https://pcc-game.i3play.com", "&E)H@McQeThWmZq4t7w!z%C*F-JaNdRg")
-	pcrdJPRepo := pcrd_jp_repository.NewRest("http://prd-priconne-redive.akamaized.net")
+	pcrdTHRepo := pcrd_th_repository.NewRest(cfg.PCRD.THEndpoint, cfg.PCRD.THSalt)
+	pcrdJPRepo := pcrd_jp_repository.NewRest(cfg.PCRD.JPEndpoint)
 	versionRepo := version_repository.NewMongoDb(client.Database(cfg.MongoDbStoreVersion))
 	historyRepo := history_repository.NewMongoDb(client.Database(cfg.MongoDbStoreVersion))
 
