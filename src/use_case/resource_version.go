@@ -89,6 +89,7 @@ func (u UseCase) UpdateResourceVersion(
 	}
 
 	currentVersion.ResVersion = version
+	currentVersion.AppVersion = application.Version
 
 	err = u.versionRepository.Update(ctx, currentVersion)
 	if err != nil {
